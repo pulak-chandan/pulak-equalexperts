@@ -1,0 +1,13 @@
+.git
+.idea
+.ai
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+__pycache__
+*.py[cod]
+.coverage
+#warehouse.db
+uncommitted
+docs

@@ -1,0 +1,10 @@
+services:
+  exercise:
+    build: .
+    image: equalexperts-dataeng-exercise
+    volumes:
+      - ./uncommitted:/app/uncommitted
+      - warehouse-data:/data
+
+volumes:
+  warehouse-data:
