@@ -185,7 +185,44 @@ Please include instructions about your strategy and important decisions you made
 
 ## Your Approach and answers to follow-up questions 
 
-_Please provide an explaination to your implementation approach and the additional questions **here**_
+### Strategy and Key decisions
+
+- The `votes` table is created with fixed column types up front. Incoming files may carry extra or new columns, so the pipeline only picks the columns it needs and loads them into this fixed schema. The data is validated at load time, so it's datatype is not guessed at query time.
+- Upsert is done using a standard SQL MERGE, which matches incoming rows to existing ones on `Id`, updating when the Id already exists and inserting only when it does not. This helps to de-duplicate as well as keep the latest data
+
+
+### 1. Data quality measures in production
+
+**Pre-ingestion:**
+
+- confirm the file(s) exists, is parseable. Invalid file(s) should be caught and quarantined up front.
+- check each record has the required fields (`Id`, `PostId`, `VoteTypeId`, `CreationDate`) and their values match their datatypes / can be casted to the required datatype
+- reject rows with a null `Id` or null `CreationDate`. 
+- A daily file may contain the same Id more than once, so we will keep only the row with the latest CreationDate per Id before merging.
+
+**Post-ingestion:**
+
+- rows read = rows quarantined + rows merged(inserted/updated).
+- assert exactly one row per `Id` in `votes` (no duplicates leaked)
+- The number of rows inserted and updated row counts stay within an expected range of the historical baseline (e.g. 10% lower or higher). The load should not be empty or far larger.
+- The `outlier_weeks` view has no NULL data
+
+### 2. Scaling to a 10TB dataset with 5GB arriving daily
+
+- Ingest only daily data of 5GB (Incremental Load) rather than re-reading all historical files everyday. 
+- Use columnar storage (e.g. Parquet) and a warehouse like Snowflake/ BigQuery.
+- Add Partition by week or day.
+- Add a Pre aggregation table that stores the weekly votecounts.
+- Run automated jobs through a schedular e.g. Airflow and monitor through slack notifications or emails.
+
+### 3. Assumptions made
+
+- `Id` is always NOT NULL in the JSON file.
+- `Id` is the unique key for a vote. When an `Id` repeats, the record with the later `CreationDate` is the correct/latest one.
+- The JSON file may contain fields other than the ones being ingested (extra fields), but the fields that are being ingested are always available mandatorily.
+- JSON file is parseable.
+- Every field value in JSON is castable to its declared type.
+- The `outlier_weeks` view logic assumes the table on which it's built already exists (can have 0 or more rows).If the `votes` table does not exist, outliers detection program will fail.
 
 ## AI Tool Usage
 
@@ -196,3 +233,11 @@ While we encourage the use of AI tools as part of the learning process but to en
 3.  **How AI-Generated Code Was Reviewed:** Explain how you reviewed and verified the AI-generated code to ensure its correctness and quality.
 
 Please note, during the technical interview, which will build upon this exercise, we'll focus on your coding abilities and problem-solving skills without the use of AI tools. This will allow us to see your direct approach and thought process.
+
+
+
+AI Tools were used to generate lines of code specific to DuckDB connectors, test cases and debugging syntactical errors.
+
+Roughly 40% code modified by AI tools.
+
+All AI generated code reviewed and moderated manually.

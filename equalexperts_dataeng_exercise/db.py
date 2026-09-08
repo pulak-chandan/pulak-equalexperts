@@ -14,11 +14,11 @@ WAREHOUSE_PATH = "warehouse.db"
 SCHEMA = "blog_analysis"
 VOTES_TABLE = f"{SCHEMA}.votes"
 
-# Types chosen for an OLAP warehouse: fixed-width numerics for the identifiers. Id is
-# the business key we upsert on, so it is the primary key.
+# Types chosen for an OLAP warehouse: fixed-width numerics for the identifiers.
+# Id is the business key we upsert on.
 CREATE_VOTES_TABLE = f"""
     CREATE TABLE IF NOT EXISTS {VOTES_TABLE} (
-        Id            BIGINT PRIMARY KEY,
+        Id            BIGINT,
         PostId        BIGINT,
         VoteTypeId    INTEGER,
         CreationDate  TIMESTAMP
