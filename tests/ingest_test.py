@@ -64,11 +64,11 @@ def test_ingest_is_idempotent(con: duckdb.DuckDBPyConnection):
 
 def test_ingest_updates_changed_record(tmp_path: Path, con: duckdb.DuckDBPyConnection):
     original = tmp_path / "v1.jsonl"
-    original.write_text('{"Id":"1","PostId":"1","VoteTypeId":"2","CreationDate":"2022-01-02T00:00:00.000"}\n')
+    original.write_text('{"Id":"1","PostId":"1","VoteTypeId":"2","CreationDate":"2022-01-02T00:00:00.000"}')
     ingest(str(original), con)
 
     updated = tmp_path / "v2.jsonl"
-    updated.write_text('{"Id":"1","PostId":"99","VoteTypeId":"3","CreationDate":"2022-05-01T00:00:00.000"}\n')
+    updated.write_text('{"Id":"1","PostId":"99","VoteTypeId":"3","CreationDate":"2022-05-01T00:00:00.000"}')
     ingest(str(updated), con)
 
     assert _count(con) == 1, "A record with an existing Id should be updated, not inserted"
@@ -77,10 +77,11 @@ def test_ingest_updates_changed_record(tmp_path: Path, con: duckdb.DuckDBPyConne
 
 def test_ingest_deduplicates_within_a_file(tmp_path: Path, con: duckdb.DuckDBPyConnection):
     data = tmp_path / "dupes.jsonl"
-    data.write_text(
-        '{"Id":"1","PostId":"1","VoteTypeId":"2","CreationDate":"2022-01-02T00:00:00.000"}\n'
-        '{"Id":"1","PostId":"1","VoteTypeId":"2","CreationDate":"2022-06-02T00:00:00.000"}\n'
-    )
+    records = [
+        '{"Id":"1","PostId":"1","VoteTypeId":"2","CreationDate":"2022-01-02T00:00:00.000"}',
+        '{"Id":"1","PostId":"1","VoteTypeId":"2","CreationDate":"2022-06-02T00:00:00.000"}',
+    ]
+    data.write_text("\n".join(records))
     ingest(str(data), con)
 
     assert _count(con) == 1, "Duplicate Ids within a file should collapse to one row"

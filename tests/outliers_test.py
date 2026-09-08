@@ -42,7 +42,7 @@ def test_outlier_weeks_matches_sample(con: duckdb.DuckDBPyConnection):
         SELECT Year, WeekNumber, VoteCount FROM {OUTLIER_VIEW}
         """
     ).fetchall()
-    assert result == EXPECTED_OUTLIERS, "Outlier weeks do not match the expected README sample"
+    assert result == EXPECTED_OUTLIERS, "Outlier weeks do not match the expected sample"
 
 
 def test_outlier_view_is_a_view(con: duckdb.DuckDBPyConnection):
