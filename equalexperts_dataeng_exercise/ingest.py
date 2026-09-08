@@ -1,7 +1,5 @@
 """Incremental ingestion of vote data into the blog_analysis.votes table.
 
-Run with:  python -m equalexperts_dataeng_exercise.ingest <path-to-votes.jsonl>
-
 The process is safe to run repeatedly: new records are inserted and records
 whose Id already exists are updated, so consumers never see duplicates.
 """
