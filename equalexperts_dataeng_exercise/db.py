@@ -15,10 +15,11 @@ SCHEMA = "blog_analysis"
 VOTES_TABLE = f"{SCHEMA}.votes"
 
 # Types chosen for an OLAP warehouse: fixed-width numerics for the identifiers.
-# Id is the business key we upsert on.
+# Id is the business key we upsert on; the primary key makes the database reject
+# any duplicate Id, so consumers never have to de-duplicate in their queries.
 CREATE_VOTES_TABLE = f"""
     CREATE TABLE IF NOT EXISTS {VOTES_TABLE} (
-        Id            BIGINT,
+        Id            BIGINT PRIMARY KEY,
         PostId        BIGINT,
         VoteTypeId    INTEGER,
         CreationDate  TIMESTAMP
