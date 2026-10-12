@@ -33,7 +33,13 @@ def connect(path: str = WAREHOUSE_PATH, *, read_only: bool = False) -> duckdb.Du
 
 
 def ensure_schema(con: duckdb.DuckDBPyConnection):
-    """Create the schema and votes table if they do not already exist."""
+    """Create the schema and votes table if they do not already exist, in a single transaction."""
     logger.info(f"Ensuring schema {SCHEMA} and table {VOTES_TABLE} exist")
-    con.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA};")
-    con.execute(CREATE_VOTES_TABLE)
+    con.begin()
+    try:
+        con.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA};")
+        con.execute(CREATE_VOTES_TABLE)
+        con.commit()
+    except Exception:
+        con.rollback()
+        raise
