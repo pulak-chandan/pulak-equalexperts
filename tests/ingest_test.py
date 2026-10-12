@@ -86,3 +86,14 @@ def test_ingest_deduplicates_within_a_file(tmp_path: Path, con: duckdb.DuckDBPyC
 
     assert _count(con) == 1, "Duplicate Ids within a file should collapse to one row"
     assert _rows(con) == [(1, 1, 2, datetime.datetime(2022, 6, 2))], "The later CreationDate should win"
+
+
+def test_votes_table_rejects_duplicate_ids(con: duckdb.DuckDBPyConnection):
+    ingest(SAMPLE_FILE, con)
+    with pytest.raises(duckdb.ConstraintException):
+        con.execute(
+            f"""
+            INSERT INTO {db.VOTES_TABLE} VALUES (1, 1, 2, TIMESTAMP '2022-01-02 00:00:00')
+            """
+        )
+    assert _count(con) == 16, "A rejected duplicate should leave the table unchanged"
